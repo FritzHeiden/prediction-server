@@ -9,6 +9,7 @@ class PredictionApi {
 
   _handlePost(request, response) {
     response.send();
+    console.log("POST", request.uri);
     const url = this._parseUrl(request);
     switch (url[1]) {
       case "predict_number":

@@ -2,6 +2,7 @@ const os = require("os");
 
 const ExpressWebServer = require("./express-web-server");
 const PredictionApi = require("./prediction-api");
+const StatusApi = require("./status-api");
 
 class PredictionServer {
   constructor() {
@@ -11,6 +12,9 @@ class PredictionServer {
   async initialize() {
     const predictionApi = new PredictionApi();
     this._webServer.addRoutes(predictionApi.getRoutes());
+
+    const statusApi = new StatusApi();
+    this._webServer.addRoutes(statusApi.getRoutes());
   }
 
   async start(port) {
