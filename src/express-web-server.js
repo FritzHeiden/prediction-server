@@ -1,4 +1,5 @@
 const express = require("express");
+const bodyParser = require("body-parser");
 
 const GET = "get";
 const POST = "post";
@@ -7,6 +8,7 @@ const ALL = "all";
 class ExpressWebServer {
   constructor() {
     this._app = express();
+    this._app.use(bodyParser.text({ type: "text/plain", limit: "100000kb" }));
   }
 
   addRoute(route) {
