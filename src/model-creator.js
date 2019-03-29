@@ -1,60 +1,50 @@
-const Jimp = require("jimp");
+let tf;
 const mnist = require("mnist");
-require("@tensorflow/tfjs-node");
-const tf = require("@tensorflow/tfjs");
 
-const fileSystem = require("./file-system");
+const DEFAULT_LEARNING_RATE = 0.1;
+const DEFAULT_EPOCHS = 10;
+const DEFAULT_VALIDATION_SPLIT = 0.2;
 
-const { training: trainingSet, test: testSet } = mnist.set(8000, 2000);
+const TOTAL_DATA_SETS = 10000;
 
-const validationImage = testSet[0];
-let imageData = [];
-validationImage.input.forEach(
-  value =>
-    (imageData = imageData.concat([
-      Math.floor(value * 255),
-      Math.floor(value * 255),
-      Math.floor(value * 255),
-      255
-    ]))
-);
+async function generateModel({
+  validationSplit = DEFAULT_VALIDATION_SPLIT,
+  epochs = DEFAULT_EPOCHS,
+  learningRate = DEFAULT_LEARNING_RATE
+} = {}) {
+  require("@tensorflow/tfjs-node");
+  tf = require("@tensorflow/tfjs");
 
-console.log(
-  "CREATE IMAGE FOR NUMBER",
-  validationImage.output.findIndex(value => value === 1)
-);
+  const model = createModel(learningRate);
+  await trainModel(model, { validationSplit, epochs });
+  await model.save("file://./data/model");
+}
 
-const buffer = Buffer.from(imageData);
+async function trainModel(model, { validationSplit, epochs }) {
+  const trainingDataSetCount = Math.floor(
+    TOTAL_DATA_SETS * (1 - validationSplit)
+  );
+  const testDataSetCount = Math.floor(TOTAL_DATA_SETS * validationSplit);
+  const { training: trainingSet, test: testSet } = mnist.set(
+    trainingDataSetCount,
+    testDataSetCount
+  );
+  const trainInput = tf.tensor2d(
+    trainingSet.map(trainingData => trainingData.input)
+  );
+  const trainOutput = tf.tensor2d(
+    trainingSet.map(trainingData => trainingData.output)
+  );
 
-new Jimp({ data: buffer, width: 28, height: 28 }, (error, image) => {
-  if (error) console.error(error);
-  image.write("test.jpg");
-});
+  const testInput = tf.tensor2d(testSet.map(testData => testData.input));
+  const testOutput = tf.tensor2d(testSet.map(testData => testData.output));
 
-const model = createModel(0.2);
-
-const trainInput = tf.tensor2d(
-  trainingSet.map(trainingData => trainingData.input)
-);
-const trainOutput = tf.tensor2d(
-  trainingSet.map(trainingData => trainingData.output)
-);
-
-const testInput = tf.tensor2d(testSet.map(testData => testData.input));
-const testOutput = tf.tensor2d(testSet.map(testData => testData.output));
-
-(async () => {
   await model.fit(trainInput, trainOutput, {
-    epochs: 50,
+    epochs,
     validationData: [testInput, testOutput],
     shuffle: true
   });
-  const testImage = tf.tensor2d([validationImage.input]);
-  const results = model.predict(testImage);
-  const index = results.argMax(1);
-  const number = (await index.data())[0];
-  console.log("PREDICTED NUMBER", number);
-})();
+}
 
 function createModel(learningRate) {
   const model = tf.sequential();
@@ -78,3 +68,5 @@ function createModel(learningRate) {
   });
   return model;
 }
+
+module.exports = { generateModel };

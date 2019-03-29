@@ -4,6 +4,8 @@ const ExpressWebServer = require("./express-web-server");
 const PredictionApi = require("./prediction-api");
 const StatusApi = require("./status-api");
 
+const DEFAULT_PORT = 8080;
+
 class PredictionServer {
   constructor() {
     this._webServer = new ExpressWebServer();
@@ -17,7 +19,7 @@ class PredictionServer {
     this._webServer.addRoutes(statusApi.getRoutes());
   }
 
-  async start(port) {
+  async start(port = DEFAULT_PORT) {
     const ip = this._getIpAddress();
     await this._webServer.start(port);
     return { ip, port };
