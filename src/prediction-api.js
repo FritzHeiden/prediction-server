@@ -1,4 +1,5 @@
 const Route = require("./route");
+const ImagePredictor = require("./image-predictor");
 const FileSystem = require("./file-system");
 
 const { GET, POST, ALL } = Route;
@@ -6,6 +7,14 @@ const { GET, POST, ALL } = Route;
 const NO_NUMBER_RECOGNIZED = "no_number_recognized";
 
 class PredictionApi {
+  /**
+   * @constructor
+   * @param {ImagePredictor} imagePredictor
+   */
+  constructor(imagePredictor) {
+    this._imagePredictor = imagePredictor;
+  }
+
   getRoutes() {
     return [new Route(POST, "/prediction*", this._handlePost.bind(this))];
   }
@@ -20,12 +29,11 @@ class PredictionApi {
   }
 
   async _handlePredictNumber(request, response) {
-    console.log("PREDICTING ...");
     const base64 = request.body;
     const buffer = Buffer.from(base64, "base64");
-    await FileSystem.writeFile(`./image-${Date.now()}.jpg`, buffer);
+    await this._imagePredictor.predictNumber(buffer);
+    // await FileSystem.writeFile(`./image-${Date.now()}.jpg`, buffer);
     response.set("Content-Type", "text/plain");
-    console.log("DONE PREDICTING");
     response.send(NO_NUMBER_RECOGNIZED);
   }
 

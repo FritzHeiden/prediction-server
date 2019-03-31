@@ -3,16 +3,20 @@ const os = require("os");
 const ExpressWebServer = require("./express-web-server");
 const PredictionApi = require("./prediction-api");
 const StatusApi = require("./status-api");
+const ImagePredictor = require("./image-predictor");
 
 const DEFAULT_PORT = 8080;
 
 class PredictionServer {
   constructor() {
     this._webServer = new ExpressWebServer();
+    this._imagePredictor = new ImagePredictor();
   }
 
   async initialize() {
-    const predictionApi = new PredictionApi();
+    await this._imagePredictor.loadModel();
+
+    const predictionApi = new PredictionApi(this._imagePredictor);
     this._webServer.addRoutes(predictionApi.getRoutes());
 
     const statusApi = new StatusApi();
