@@ -12,8 +12,13 @@ const MAKE_MODEL = "make_model";
       await serve(port);
       break;
     case MAKE_MODEL:
-      const { learningRate, epochs, validationSplit } = startArguments;
-      await makeModel({ learningRate, epochs, validationSplit });
+      const {
+        learningRate,
+        epochs,
+        validationSplit,
+        batchSize
+      } = startArguments;
+      await makeModel({ learningRate, epochs, validationSplit, batchSize });
       break;
   }
 })();
@@ -72,6 +77,15 @@ function parseStartArguments() {
           const epochs = parseInt(value);
           if (isNaN(epochs)) throw new Error("Epochs must be of type int");
           parsedArguments.epochs = epochs;
+          i++;
+          continue;
+        case "--batch-size":
+          if (!value)
+            throw new Error("No value provided to option '--batch-size'");
+          const batchSize = parseInt(value);
+          if (isNaN(batchSize))
+            throw new Error("Batch size must be of type int");
+          parsedArguments.batchSize = batchSize;
           i++;
           continue;
         case "--validation-split":
