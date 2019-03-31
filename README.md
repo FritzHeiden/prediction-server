@@ -27,8 +27,6 @@ $ node index.js make-model
 
 You can adjust basic training parameters by passing them to the `make-model` script:
 
----
-
 | flag                         | default |
 | ---------------------------- | ------- |
 | `--learning-rate <float>`    | 0.001   |
