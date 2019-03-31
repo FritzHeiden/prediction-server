@@ -1,5 +1,6 @@
 let tf;
 const mnist = require("mnist");
+const fs = require("fs");
 
 const DEFAULT_LEARNING_RATE = 0.001;
 const DEFAULT_EPOCHS = 100;
@@ -19,6 +20,7 @@ async function generateModel({
 
   const model = createModel(learningRate);
   await trainModel(model, { validationSplit, epochs, batchSize });
+  await mkdir("./data");
   await model.save("file://./data/model");
 }
 
@@ -79,6 +81,15 @@ function createModel(learningRate) {
     loss: "categoricalCrossentropy"
   });
   return model;
+}
+
+async function mkdir(dirPath) {
+  return new Promise((resolve, reject) => {
+    fs.mkdir(dirPath, error => {
+      if (error) reject(error);
+      resolve();
+    });
+  });
 }
 
 module.exports = { generateModel };
