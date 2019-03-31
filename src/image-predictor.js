@@ -33,8 +33,7 @@ class ImagePredictor {
     const result = this._model.predict(tensor);
     const index = await result.argMax(1);
     const number = (await index.data())[0];
-    console.log(number);
-    console.log(preparedData.length);
+    return number;
   }
 }
 

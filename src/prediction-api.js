@@ -31,10 +31,10 @@ class PredictionApi {
   async _handlePredictNumber(request, response) {
     const base64 = request.body;
     const buffer = Buffer.from(base64, "base64");
-    await this._imagePredictor.predictNumber(buffer);
+    const prediction = await this._imagePredictor.predictNumber(buffer);
     // await FileSystem.writeFile(`./image-${Date.now()}.jpg`, buffer);
     response.set("Content-Type", "text/plain");
-    response.send(NO_NUMBER_RECOGNIZED);
+    response.send(JSON.stringify({ prediction }));
   }
 
   _parseUrl(request) {
