@@ -1,26 +1,28 @@
 let tf;
 const mnist = require("mnist");
 
-const DEFAULT_LEARNING_RATE = 0.1;
-const DEFAULT_EPOCHS = 10;
+const DEFAULT_LEARNING_RATE = 0.001;
+const DEFAULT_EPOCHS = 100;
 const DEFAULT_VALIDATION_SPLIT = 0.2;
+const DEFAULT_BATCH_SIZE = 128;
 
 const TOTAL_DATA_SETS = 10000;
 
 async function generateModel({
   validationSplit = DEFAULT_VALIDATION_SPLIT,
   epochs = DEFAULT_EPOCHS,
-  learningRate = DEFAULT_LEARNING_RATE
+  learningRate = DEFAULT_LEARNING_RATE,
+  batchSize = DEFAULT_BATCH_SIZE
 } = {}) {
   require("@tensorflow/tfjs-node");
   tf = require("@tensorflow/tfjs");
 
   const model = createModel(learningRate);
-  await trainModel(model, { validationSplit, epochs });
+  await trainModel(model, { validationSplit, epochs, batchSize });
   await model.save("file://./data/model");
 }
 
-async function trainModel(model, { validationSplit, epochs }) {
+async function trainModel(model, { validationSplit, epochs, batchSize }) {
   const trainingDataSetCount = Math.floor(
     TOTAL_DATA_SETS * (1 - validationSplit)
   );
@@ -42,25 +44,35 @@ async function trainModel(model, { validationSplit, epochs }) {
   await model.fit(trainInput, trainOutput, {
     epochs,
     validationData: [testInput, testOutput],
-    shuffle: true
+    shuffle: true,
+    batchSize
   });
 }
 
 function createModel(learningRate) {
   const model = tf.sequential();
 
-  const hiddenLayer = tf.layers.dense({
-    inputDim: 784,
-    units: 20,
-    activation: "sigmoid"
-  });
-  model.add(hiddenLayer);
+  model.add(
+    tf.layers.dense({
+      inputDim: 784,
+      units: 32,
+      activation: "sigmoid"
+    })
+  );
 
-  const outputLayer = tf.layers.dense({
-    units: 10,
-    activation: "softmax"
-  });
-  model.add(outputLayer);
+  model.add(
+    tf.layers.dense({
+      units: 16,
+      activation: "sigmoid"
+    })
+  );
+
+  model.add(
+    tf.layers.dense({
+      units: 10,
+      activation: "softmax"
+    })
+  );
 
   model.compile({
     optimizer: tf.train.adam(learningRate),
